@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GlobalStyles } from "./Styles";
-import { setSignUp } from "../store/redux/auth";
+import { authActions } from "../store/redux/auth";
 
 import Input from "./Input";
 import CustomButton from "./CustomButton";
+import api from "./../apis/local";
 
 function SignUpForm() {
   const [inputs, setInputs] = useState({
@@ -31,6 +33,13 @@ function SignUpForm() {
   function renderLoginForm() {
     navigation.navigate("UserLoginScreen");
   }
+  const validateEmail = (email) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 
   function submitForm() {
     const data = {
@@ -38,9 +47,53 @@ function SignUpForm() {
       email: inputs.email.value,
       password: inputs.password.value,
       passwordConfirm: inputs.passwordConfirm.value,
+      role: "user",
     };
 
-    dispatch(setSignUp(data));
+    if (!data.name || !data.email || !data.password || !data.passwordConfirm) {
+      Alert.alert("Empty Field", "Please provide all the fields to sign up");
+      return;
+    }
+
+    if (data.password !== data.passwordConfirm) {
+      Alert.alert(
+        "Inconsistent Password",
+        "Confirm password must be same with your password"
+      );
+      return;
+    }
+
+    if (!validateEmail(data.email)) {
+      Alert.alert(
+        "Email Validation",
+        "Please enter a valid email and try again"
+      );
+      return;
+    }
+
+    const signUpForm = async () => {
+      //data.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const response = await api.post("/users/signup", data);
+
+      const authData = {
+        token: response.data.token,
+        userId: response.data.data.user.id,
+      };
+
+      dispatch(authActions.signup(authData));
+
+      AsyncStorage.setItem("token", authData.token);
+      AsyncStorage.setItem("userId", authData.userId);
+
+      navigation.popToTop();
+    };
+    signUpForm().catch((err) => {
+      console.log(err.message);
+      Alert.alert(
+        "Sign Up Error",
+        "Please provide the correct credentials to signup"
+      );
+    });
   }
 
   return (

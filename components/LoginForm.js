@@ -10,6 +10,14 @@ import { authActions } from "../store/redux/auth";
 import Input from "./Input";
 import CustomButton from "./CustomButton";
 
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
 function LoginForm() {
   const [inputs, setInputs] = useState({
     email: { value: "", isValid: true },
@@ -35,6 +43,19 @@ function LoginForm() {
     };
 
     //use axios post request here
+
+    if (!data.email || !data.password) {
+      Alert.alert("Empty Field", "Please provide all the fields to login");
+      return;
+    }
+
+    if (!validateEmail(data.email)) {
+      Alert.alert(
+        "Validation Error",
+        "One of your login credentials is not correct, Try again"
+      );
+      return;
+    }
 
     if (data.email && data.password) {
       const loginForm = async () => {
@@ -107,11 +128,11 @@ function LoginForm() {
             Sign Up
           </CustomButton>
         </View>
-        <View style={styles.resetPasswordButton}>
+        {/* <View style={styles.resetPasswordButton}>
           <CustomButton mode="flat" onPress={renderResetPasswordScreen}>
             Forgot Password ?
           </CustomButton>
-        </View>
+        </View> */}
       </View>
     </View>
   );

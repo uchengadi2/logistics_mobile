@@ -6,15 +6,11 @@ import { selectToken, selectUserId, tokenObj } from "../store/redux/auth";
 function UserSignUpScreen({ route, navigation }) {
   const token = useSelector(selectToken);
 
-  if (token) {
-    navigation.pop();
-  }
+  // if (token) {
+  //   navigation.pop();
+  // }
 
-  return (
-    <View>
-      <SignUpForm />
-    </View>
-  );
+  return <View>{!token && <SignUpForm />}</View>;
 }
 
 export default UserSignUpScreen;

@@ -22,13 +22,13 @@ function CompletedPaymentsScreen({ navigation }) {
   useEffect(() => {
     const fetchData = async () => {
       let allData = [];
-      //api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      // const response = await api.get("/payments", {
-      //   params: { paymentStatus: "pending", customer: userId },
-      // });
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const response = await api.get("/payments", {
-        params: { paymentStatus: "full" },
+        params: { paymentStatus: "pending", customer: userId },
       });
+      // const response = await api.get("/payments", {
+      //   params: { paymentStatus: "full" },
+      // });
       const paymentsData = response.data.data.data;
       paymentsData.map((payment) => {
         allData.push({

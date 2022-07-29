@@ -21,6 +21,11 @@ const authSlice = createSlice({
       AsyncStorage.removeItem("token");
       AsyncStorage.removeItem("userId");
     },
+    signup(state, action) {
+      state.isLoggedIn = true;
+      state.token = action.payload.token;
+      state.userId = action.payload.userId;
+    },
   },
 });
 
