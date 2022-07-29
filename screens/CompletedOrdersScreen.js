@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { View, StyleSheet, Text, FlatList } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import RNPickerSelect from "react-native-picker-select";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "./../apis/local";
 import { GlobalStyles } from "../components/Styles";
 
 import { selectToken, selectUserId } from "./../store/redux/auth";
-import { pendingOrderActions } from "./../store/redux/pendingOrders";
-import CustomButton from "../components/CustomButton";
-import OrderGridTile from "../components/OrderGridTile";
+import { completedOrderActions } from "../store/redux/completedOrders";
+import OrderCompleteGridTile from "../components/OrderCompleteGridTile";
 
-function PendingOrdersScreen({ navigation }) {
+function CompletedOrdersScreen({ navigation }) {
   const [orderList, setOrderList] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState();
 
@@ -28,9 +24,9 @@ function PendingOrdersScreen({ navigation }) {
   useEffect(() => {
     const fetchData = async () => {
       let allData = [];
-      //api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const response = await api.get("/orders", {
-        params: { status: "pending", orderedBy: userId },
+        params: { status: "fullfilled", orderedBy: userId },
       });
       const ordersData = response.data.data.data;
       ordersData.map((order) => {
@@ -72,7 +68,7 @@ function PendingOrdersScreen({ navigation }) {
               .destinationContactPersonPhoneNumber,
         });
 
-        const pendingOrder = {
+        const completedOrder = {
           id: order._id,
           orderNumber: order.orderNumber,
           dateOrdered: order.dateOrdered,
@@ -110,7 +106,7 @@ function PendingOrdersScreen({ navigation }) {
               .destinationContactPersonPhoneNumber,
         };
 
-        dispatch(pendingOrderActions.fetchOrder(pendingOrder));
+        dispatch(completedOrderActions.storeOrder(completedOrder));
       });
       setOrderList(allData);
     };
@@ -122,7 +118,7 @@ function PendingOrdersScreen({ navigation }) {
 
   function renderOrderItem(itemData) {
     function pressHandler() {
-      navigation.navigate("PendingOrderOverScreen", {
+      navigation.navigate("CompletedOrderOverScreen", {
         id: itemData.item.id,
         orderNumber: itemData.item.orderNumber,
         dateOrdered: itemData.item.dateOrdered,
@@ -162,7 +158,7 @@ function PendingOrdersScreen({ navigation }) {
       });
     }
     return (
-      <OrderGridTile
+      <OrderCompleteGridTile
         name={itemData.item.orderNumber}
         // image={itemData.item.image}
         orderNumber={itemData.item.orderNumber}
@@ -215,7 +211,7 @@ function PendingOrdersScreen({ navigation }) {
   );
 }
 
-export default PendingOrdersScreen;
+export default CompletedOrdersScreen;
 
 const styles = StyleSheet.create({
   selectionContainer: {

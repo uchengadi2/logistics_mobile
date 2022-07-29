@@ -3,7 +3,7 @@ import { Text, View, TextInput, StyleSheet } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import { GlobalStyles } from "./Styles";
 
-function Input({ label, style, textInputConfig, type, title, list }) {
+function Input({ label, style, textInputConfig, type, title, list, secure }) {
   const [state, setState] = useState();
   let inputStyle = [styles.input];
 
@@ -11,27 +11,16 @@ function Input({ label, style, textInputConfig, type, title, list }) {
     inputStyle.push(styles.inputMultiline);
   }
   function renderInput() {
-    if (type !== "select") {
-      return (
-        <View style={[styles.inputContainer, style]}>
-          <Text style={styles.label}>{label}</Text>
-          <TextInput style={inputStyle} {...textInputConfig} />
-        </View>
-      );
-    } else if (type === "select") {
-      return (
-        <>
-          <Text style={styles.title}>{title}</Text>
-          <View style={styles.container}>
-            <RNPickerSelect
-              onValueChange={(value) => setState(value)}
-              items={list}
-              {...textInputConfig}
-            />
-          </View>
-        </>
-      );
-    }
+    return (
+      <View style={[styles.inputContainer, style]}>
+        <Text style={styles.label}>{label}</Text>
+        <TextInput
+          style={inputStyle}
+          {...textInputConfig}
+          secureTextEntry={secure}
+        />
+      </View>
+    );
   }
   return renderInput();
 }

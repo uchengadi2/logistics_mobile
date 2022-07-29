@@ -1,42 +1,46 @@
 import React, { useState, useEffect } from "react";
+import { Provider, useSelector, useDispatch } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
+import { selectToken, selectUserId } from "./../store/redux/auth";
+import RNPickerSelect from "react-native-picker-select";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
+import { GlobalStyles } from "./Styles";
+import { orderActions } from "./../store/redux/orders";
 
-import { View, Text, TextInput, StyleSheet, ScrollView } from "react-native";
-import data from "./../apis/local";
+import api from "./../apis/local";
 import Input from "./Input";
 import CustomButton from "./CustomButton";
-import SelectionInput from "./SelectionInput";
 
 function OrderBookingForm({
   categoryId,
   imageUrl,
+  categoryName,
   onSubmit,
   defaultValues,
-  token,
 }) {
   const [inputs, setInputs] = useState({
     category: {
       value: defaultValues ? defaultValues.category : " ",
       isValid: true,
     },
-    consignmentCountry: { value: " ", isValid: true },
-    destinationCountry: { value: " ", isValid: true },
+    // consignmentCountry: { value: " ", isValid: true },
+    // destinationCountry: { value: " ", isValid: true },
     orderQuantity: { value: " ", isValid: true },
-    logisticsInsurancetype: { value: " ", isValid: true },
+    // logisticsInsurancetype: { value: " ", isValid: true },
     consignmentType: { value: " ", isValid: true },
     consignmentDescription: { value: " ", isValid: true },
     consignmentWeight: { value: " ", isValid: true },
     consignmentOwner: { value: " ", isValid: true },
-    consignmentType: { value: " ", isValid: true },
     consignmentSourceAddress: { value: " ", isValid: true },
-    sourceCity: { value: " ", isValid: true },
-    consignmentsourcestate: { value: " ", isValid: true },
-    sourcePlaceType: { value: " ", isValid: true },
+    // sourceCity: { value: " ", isValid: true },
+    // consignmentsourcestate: { value: " ", isValid: true },
+    // sourcePlaceType: { value: " ", isValid: true },
     sourceContactPersonName: { value: " ", isValid: true },
     sourceContactPersonPhoneNumber: { value: " ", isValid: true },
     destinationAddress: { value: " ", isValid: true },
-    destinationCity: { value: " ", isValid: true },
-    consignmentDestinationState: { value: " ", isValid: true },
-    destinationPlaceType: { value: " ", isValid: true },
+    // destinationCity: { value: " ", isValid: true },
+    // consignmentDestinationState: { value: " ", isValid: true },
+    // destinationPlaceType: { value: " ", isValid: true },
     destinationContactPersonName: { value: " ", isValid: true },
     destinationContactPersonPhoneNumber: { value: " ", isValid: true },
   });
@@ -46,6 +50,23 @@ function OrderBookingForm({
   const [destinationCountryList, setDestinationCountryList] = useState([]);
   const [destinationStateList, setDestinationStateList] = useState([]);
   const [destinationCityList, setDestinationCityList] = useState([]);
+  const [sourceCountry, setSourceCountry] = useState();
+  const [sourceState, setSourceState] = useState();
+  const [sourceCity, setSourceCity] = useState();
+  const [destinationCountry, setDestinationCountry] = useState();
+  const [destinationState, setDestinationState] = useState();
+  const [destinationCity, setDestinationCity] = useState();
+  const [sourcePlaceType, setSourcePlaceType] = useState();
+  const [destinationPlaceType, setDestinationPlaceType] = useState();
+  const [logisticsInsurancetype, setLogisticsInsurancetype] = useState();
+
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const token = useSelector(selectToken);
+  const userId = useSelector(selectUserId);
+
+  // console.log("token is at book form:", token);
+  // console.log("user id is at book form:", userId);
 
   function inputChangeHandler(inputIdentifier, enteredValue) {
     setInputs((currInputs) => {
@@ -56,11 +77,14 @@ function OrderBookingForm({
     });
   }
 
+  function sourceCountryInputHandler(enteredText) {
+    setSourceCountry(enteredTexte);
+  }
   useEffect(() => {
     const fetchData = async () => {
       let allData = [];
       //data.defaults.headers.common["Authorization"] = `Bearer ${props.token}`;
-      const response = await data.get("/countries");
+      const response = await api.get("/countries");
       const workingData = response.data.data.data;
       workingData.map((country) => {
         allData.push({ value: country._id, label: country.name });
@@ -77,7 +101,7 @@ function OrderBookingForm({
     const fetchData = async () => {
       let allData = [];
       //data.defaults.headers.common["Authorization"] = `Bearer ${props.token}`;
-      const response = await data.get("/countries");
+      const response = await api.get("/countries");
       const workingData = response.data.data.data;
       workingData.map((country) => {
         allData.push({ value: country._id, label: country.name });
@@ -97,7 +121,9 @@ function OrderBookingForm({
       // const response = await data.get("/states", {
       //   params: { country: sourceCountry },
       // });
-      const response = await data.get("/states");
+      const response = await api.get("/states", {
+        params: { country: sourceCountry },
+      });
       const workingData = response.data.data.data;
       workingData.map((state) => {
         allData.push({ value: state._id, label: state.name });
@@ -108,7 +134,7 @@ function OrderBookingForm({
     //call the function
 
     fetchData().catch(console.error);
-  }, []);
+  }, [sourceCountry]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,7 +143,9 @@ function OrderBookingForm({
       // const response = await data.get("/states", {
       //   params: { country: destinationCountry },
       // });
-      const response = await data.get("/states");
+      const response = await api.get("/states", {
+        params: { country: destinationCountry },
+      });
       const workingData = response.data.data.data;
       workingData.map((state) => {
         allData.push({ value: state._id, label: state.name });
@@ -128,16 +156,18 @@ function OrderBookingForm({
     //call the function
 
     fetchData().catch(console.error);
-  }, []);
+  }, [destinationCountry]);
 
   useEffect(() => {
     const fetchData = async () => {
       let allData = [];
-      data.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       // const response = await data.get("/cities", {
       //   params: { state: sourceState },
       // });
-      const response = await data.get("/cities");
+      const response = await api.get("/cities", {
+        params: { state: sourceState },
+      });
       const workingData = response.data.data.data;
       workingData.map((city) => {
         allData.push({ value: city._id, label: city.name });
@@ -148,16 +178,18 @@ function OrderBookingForm({
     //call the function
 
     fetchData().catch(console.error);
-  }, []);
+  }, [sourceState]);
 
   useEffect(() => {
     const fetchData = async () => {
       let allData = [];
-      data.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       // const response = await data.get("/cities", {
       //   params: { state: destinationState },
       // });
-      const response = await data.get("/cities");
+      const response = await api.get("/cities", {
+        params: { state: destinationState },
+      });
       const workingData = response.data.data.data;
       workingData.map((city) => {
         allData.push({ value: city._id, label: city.name });
@@ -168,7 +200,7 @@ function OrderBookingForm({
     //call the function
 
     fetchData().catch(console.error);
-  }, []);
+  }, [destinationState]);
 
   const placeType = [
     { label: "Warehouse", value: "warehouse" },
@@ -203,18 +235,19 @@ function OrderBookingForm({
   function submitForm() {
     const data = {
       orderNumber: Math.floor(Math.random() * 10000000000),
-      category: inputs.category.value,
-      consignmentCountry: inputs.consignmentCountry.value,
-      destinationCountry: inputs.destinationCountry.value,
-      orderQuantity: inputs.value.orderQuantity,
+      category: categoryId,
+      categoryId: categoryId,
+      consignmentCountry: sourceCountry,
+      destinationCountry: destinationCountry,
+      orderQuantity: inputs.orderQuantity.value,
       orderedBy: userId,
-      logisticsInsurancetype: inputs.value.logisticsInsuranceType,
+      logisticsInsurancetype: logisticsInsurancetype,
       consignment: {
         name: inputs.consignmentType.value,
         description: inputs.consignmentDescription.value,
         weight: {
           weight: inputs.consignmentWeight.value,
-          unit: "",
+          unit: "kg",
         },
         owner: inputs.consignmentOwner.value,
         type: inputs.consignmentType.value,
@@ -226,9 +259,9 @@ function OrderBookingForm({
         sourceName: "",
         sourceDescription: "",
         sourceAddress: inputs.consignmentSourceAddress.value,
-        sourceCity: inputs.sourceCity.value,
-        sourceState: inputs.consignmentsourcestate.value,
-        sourcePlaceType: inputs.sourcePlaceType.value,
+        sourceCity: sourceCity,
+        sourceState: sourceState,
+        sourcePlaceType: sourcePlaceType,
         sourceCoordinates: [],
         // sourceLatitude: "",
         // sourceLongtitude: "",
@@ -244,9 +277,9 @@ function OrderBookingForm({
         destinationCoordinates: [],
         // destinationLatitude: "",
         // destinationLongtitude: "",
-        destinationCity: inputs.destinationCity.value,
-        destinationState: inputs.consignmentDestinationState.value,
-        destinationPlaceType: inputs.destinationPlaceType.value,
+        destinationCity: destinationCity,
+        destinationState: destinationState,
+        destinationPlaceType: destinationPlaceType,
         destinationContactPerson: {
           destinationContactPersonName:
             inputs.destinationContactPersonName.value,
@@ -255,10 +288,39 @@ function OrderBookingForm({
         },
       },
     };
+    //console.log("enterred data:", data);
+    //make an api call here
 
-    //state the code of valid data for each input entry
+    if (data) {
+      const createOrderForm = async () => {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const response = await api.post("/orders", data);
 
-    console.log("enterred data:", data);
+        if (response.data.status === "success") {
+          const orderData = response.data.data.data;
+
+          dispatch(orderActions.createOrder(orderData));
+
+          //navigation.pop();
+          Alert.alert(
+            "Successful",
+            "Your order is placed, We will be reaching you soon!!!"
+          );
+        } else {
+          Alert.alert(
+            "Unsuccessful",
+            "Something went wrong, please try again!!!"
+          );
+        }
+        navigation.pop();
+      };
+      createOrderForm().catch((err) => {
+        Alert.alert("Error", "Error Placing this Order, Please try again!!!!");
+        //Alert.alert("Error", err.message);
+      });
+    } else {
+      Alert.alert("Empty Form", "Please complete the order form");
+    }
 
     //onSubmit(data);
   }
@@ -274,9 +336,11 @@ function OrderBookingForm({
               textInputConfig={{
                 //keyboardType: "decimal-pad",
                 onChangeText: inputChangeHandler.bind(this, "category"),
-                value: inputs.category.value,
+                value: categoryName,
               }}
             />
+          </View>
+          <View>
             <Input
               style={styles.rowInput}
               label="Number Required"
@@ -372,56 +436,36 @@ function OrderBookingForm({
               value: inputs.consignmentSourceAddress.value,
             }}
           />
-          <Input
-            title="Source Country"
-            type={"select"}
-            list={sourceCountryList}
-            textInputConfig={{
-              //multiline: true,
-              //autoCorrect: false,
-              //autoCapitalize: "character"
-              onChangeText: inputChangeHandler.bind(this, "consignmentCountry"),
-              value: inputs.consignmentCountry.value,
-            }}
-          />
-          <View style={styles.selectinputsRow}>
-            <Input
-              style={styles.rowInput}
-              type={"select"}
-              title="Source State/Region"
-              list={sourceStateList}
-              textInputConfig={{
-                onChangeText: inputChangeHandler.bind(
-                  this,
-                  "consignmentsourcestate"
-                ),
-                value: inputs.consignmentsourcestate.value,
-              }}
-            />
-            <Input
-              style={styles.rowInput}
-              title="Source City"
-              type={"select"}
-              list={sourceCityList}
-              textInputConfig={{
-                //keyboardType: "decimal-pad",
-                onChangeText: inputChangeHandler.bind(this, "sourceCity"),
-                value: inputs.sourceCity.value,
-              }}
+          <Text style={styles.selectionTitle}>Select Source Country</Text>
+          <View style={styles.selectionContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => setSourceCountry(value)}
+              items={sourceCountryList}
             />
           </View>
-          <Input
-            title="Source Place Type"
-            type={"select"}
-            list={placeType}
-            textInputConfig={{
-              //multiline: true,
-              //autoCorrect: false,
-              //autoCapitalize: "character"
-              onChangeText: inputChangeHandler.bind(this, "sourcePlaceType"),
-              value: inputs.sourcePlaceType.value,
-            }}
-          />
+          <View style={styles.selectinputsRow}>
+            <Text style={styles.selectionTitle}>Select Source State</Text>
+            <View style={styles.selectionContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setSourceState(value)}
+                items={sourceStateList}
+              />
+            </View>
+            <Text style={styles.selectionTitle}>Select Source City</Text>
+            <View style={styles.selectionContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setSourceCity(value)}
+                items={sourceCityList}
+              />
+            </View>
+          </View>
+          <Text style={styles.selectionTitle}>Select Source Place Type</Text>
+          <View style={styles.selectionContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => setSourcePlaceType(value)}
+              items={placeType}
+            />
+          </View>
           <Text style={styles.subtitle}>Destination Address Details</Text>
           <View style={styles.inputsRow}>
             <Input
@@ -458,75 +502,43 @@ function OrderBookingForm({
               value: inputs.destinationAddress.value,
             }}
           />
-          <Input
-            title="Destination Country"
-            type={"select"}
-            list={destinationCountryList}
-            textInputConfig={{
-              //multiline: true,
-              //autoCorrect: false,
-              //autoCapitalize: "character"
-              onChangeText: inputChangeHandler.bind(this, "destinationCountry"),
-              value: inputs.destinationCountry.value,
-            }}
-          />
-          <View style={styles.selectinputsRow}>
-            <Input
-              style={styles.rowInput}
-              title="Destination State/Region"
-              type={"select"}
-              list={destinationStateList}
-              textInputConfig={{
-                onChangeText: inputChangeHandler.bind(
-                  this,
-                  "consignmentDestinationState"
-                ),
-                value: inputs.consignmentDestinationState.value,
-              }}
-            />
-            <Input
-              style={styles.rowInput}
-              type={"select"}
-              list={destinationCityList}
-              title="Destination City"
-              textInputConfig={{
-                //keyboardType: "decimal-pad",
-                onChangeText: inputChangeHandler.bind(this, "destinationCity"),
-                value: inputs.destinationCity.value,
-              }}
+          <Text style={styles.selectionTitle}>Select Destination Country</Text>
+          <View style={styles.selectionContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => setDestinationCountry(value)}
+              items={destinationCountryList}
             />
           </View>
-          <Input
-            title="Destination Place Type"
-            list={placeType}
-            type={"select"}
-            textInputConfig={{
-              //multiline: true,
-              //autoCorrect: false,
-              //autoCapitalize: "character"
-              onChangeText: inputChangeHandler.bind(
-                this,
-                "destinationPlaceType"
-              ),
-              value: inputs.destinationPlaceType.value,
-            }}
-          />
+          <View style={styles.selectinputsRow}>
+            <Text style={styles.selectionTitle}>Select Destination State</Text>
+            <View style={styles.selectionContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setDestinationState(value)}
+                items={destinationStateList}
+              />
+            </View>
+            <Text style={styles.selectionTitle}>Select Destination City</Text>
+            <View style={styles.selectionContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setDestinationCity(value)}
+                items={destinationCityList}
+              />
+            </View>
+          </View>
+          <Text style={styles.selectionTitle}>Destination Place Type</Text>
+          <View style={styles.selectionContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => setDestinationPlaceType(value)}
+              items={placeType}
+            />
+          </View>
           <Text style={styles.subtitle}>Insurance Type</Text>
-          <Input
-            title="Insurance Type"
-            type={"select"}
-            list={insuranceType}
-            textInputConfig={{
-              //multiline: true,
-              //autoCorrect: false,
-              //autoCapitalize: "character"
-              onChangeText: inputChangeHandler.bind(
-                this,
-                "logisticsInsurancetype"
-              ),
-              value: inputs.logisticsInsurancetype.value,
-            }}
-          />
+          <View style={styles.selectionContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => setLogisticsInsurancetype(value)}
+              items={insuranceType}
+            />
+          </View>
 
           {/* <SelectionInput title={"Languages"} list={list} /> */}
         </View>
@@ -569,6 +581,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   submitButton: {
-    marginVertical: 20,
+    marginVertical: 40,
+  },
+  selectionContainer: {
+    flex: 1,
+    backgroundColor: GlobalStyles.colors.primary100,
+    color: "#ccc",
+    //alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+  },
+  selectionTitle: {
+    fontSize: 12,
+    color: GlobalStyles.colors.primary100,
+    marginBottom: 4,
+    marginTop: 10,
   },
 });

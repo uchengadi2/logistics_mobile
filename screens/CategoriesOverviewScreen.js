@@ -6,6 +6,7 @@ function CategoriesOverviewScreen({ route, navigation }) {
   //alternatively to getting the route
   // const route = useRoute();
   // const catId = route.params.categoryId
+
   const data = {
     name: route.params.name,
     description: route.params.description,
@@ -38,6 +39,7 @@ function CategoriesOverviewScreen({ route, navigation }) {
     return <CategoryItem {...categoryProps} />;
   }
   const imageUrl = `${baseURL}/images/categories/${data.image}`;
+
   return (
     // <View style={styles.container}>
     //   <FlatList

@@ -86,16 +86,15 @@ export const signUp = (formValues) => {
 };
 
 export const signIn = (formValues) => {
-  console.log("the formvalues are at index.js:", formValues);
   return async (dispatch) => {
     const response = await data.post("/users/login", formValues);
-    console.log("thsi is the response from server:", response);
+
     if (response.status === 200) {
       //document.cookie = "jwt=" + response.data.token;
       //localStorage.setItem("token", JSON.stringify(response.data.token));
       // console.log("this token is:", token);
       dispatch({ type: SIGN_IN, payload: response.data });
-      history.push("/");
+      //history.push("/");
     } else {
       console.log("something went wrong here");
     }

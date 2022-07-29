@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Pressable,
@@ -9,22 +8,34 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { Provider, useSelector, useDispatch } from "react-redux";
+import { selectToken, selectUserId } from "./../store/redux/auth";
 import { useNavigation } from "@react-navigation/native";
-import CategoryExtraDetail from "./CategoryExtraDetail";
+import { getSelectedOrder } from "../store/redux/pendingOrders";
 
 function CategoryItem({ id, name, imageUrl, description }) {
   const navigation = useNavigation();
 
+  const token = useSelector(selectToken);
+  const userId = useSelector(selectUserId);
+
+  // const selectedOrder = useSelector(getSelectedOrder);
+
+  // console.log("selected order at cat:", selectedOrder);
+
   function selectCategoryItemHandler() {
-    navigation.navigate("OrderBookingScreen", {
-      id: id,
-      imageUrl: imageUrl,
-      name: name,
-      description: description,
-    });
+    if (!token) {
+      navigation.navigate("UserLoginScreen");
+    } else {
+      navigation.navigate("OrderBookingScreen", {
+        categoryId: id,
+        imageUrl: imageUrl,
+        categoryName: name,
+        categoryDescription: description,
+      });
+    }
   }
-  const descriptionText =
-    "A truck or lorry is a motor vehicle designed to transport cargo, carry specialized payloads, or perform other utilitarian work. Trucks vary greatly in size, power, and configuration, but the vast majority feature body-on-frame construction, with a cabin that is independent of the payload portion of the vehicle. Smaller varieties may be mechanically similar to some auto";
+
   return (
     <>
       <ScrollView>

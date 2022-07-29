@@ -9,71 +9,76 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectToken, selectUserId } from "./../store/redux/auth";
 import api from "./../apis/local";
-import { GlobalStyles } from "../components/Styles";
-import CustomButton from "../components/CustomButton";
-import { authActions } from "./../store/redux/auth";
 
-function ProfileScreen({ navigation, route }) {
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
-
-  const dispatch = useDispatch();
+function PaymentPendingDetails({
+  paymentId,
+  currency,
+  totalAmountAlreadyPaid,
+  totalAmountExpected,
+}) {
+  const [currencyCode, setCurrencyCode] = useState();
+  const [currencyName, setCurrencyName] = useState();
   const token = useSelector(selectToken);
   const userId = useSelector(selectUserId);
 
   useEffect(() => {
     const fetchData = async () => {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      const response = await api.get(`/users/${userId}`);
+      const response = await api.get(`/currencies/${currency}`);
       const workingData = response.data.data.data;
-      //console.log(response.data);
-      if (response.data.status === "success") {
-        if (workingData.name !== undefined) {
-          setName(workingData.name);
-        }
-        if (workingData.email !== undefined) {
-          setEmail(workingData.email);
-        }
-      }
+      setCurrencyCode(workingData.code);
+      setCurrencyName(workingData.name);
     };
 
     //call the function
 
     fetchData().catch(console.error);
-  }, [userId]);
+  }, [currency]);
 
-  function submitForm() {
-    //use axios post request here
-
-    dispatch(authActions.logout());
-
-    //navigation.replace("CompletedOrdersScreen");
+  function numberWithCommas(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
+  const amountRemaining =
+    parseFloat(totalAmountExpected) - parseFloat(totalAmountAlreadyPaid);
+
+  const amount = numberWithCommas(amountRemaining);
+
+  const message = {
+    message:
+      "Above is the total amount that is remaining to complete this order. Transfer this amount to the account that is included in your invoice or proposal. We will be glad to hear from you as soon as possible  ",
+    nextstep: "",
+  };
   return (
     <>
       <ScrollView>
+        {/* <View style={styles.categoryItem}>
+          <View style={styles.innerContainer}>
+            <View>
+              <Image source={{ uri: imageUrl }} style={styles.image} />
+              <Text style={styles.name}>{categoryName}</Text>
+            </View>
+          </View>
+        </View> */}
+
         <View style={styles.categoryItem}>
           <View style={styles.innerContainer}>
             <View>
               {/* <Image source={{ uri: imageUrl }} style={styles.image} /> */}
-              <Text style={styles.description}>
-                <Text style={styles.label}>Name:</Text> {name}
-              </Text>
-              <Text style={styles.description}>
-                <Text style={styles.label}>Email:</Text> {email}
+              <Text style={styles.amount}>
+                <Text>{currencyCode}</Text>
+                {amount}
               </Text>
             </View>
           </View>
         </View>
-
         <View style={styles.categoryItem}>
           <View style={styles.innerContainer}>
             <View>
-              <CustomButton onPress={submitForm}>Log Out</CustomButton>
+              <Text style={styles.name}>{message.message}</Text>
             </View>
           </View>
         </View>
@@ -82,7 +87,7 @@ function ProfileScreen({ navigation, route }) {
   );
 }
 
-export default ProfileScreen;
+export default PaymentPendingDetails;
 
 const styles = StyleSheet.create({
   categoryItem: {
@@ -104,15 +109,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
   },
-  description: {
+  amount: {
     fontWeight: "100",
-    fontSize: 20,
+    fontSize: 40,
+    textAlign: "center",
     margin: 8,
   },
   name: {
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 18,
+    //fontWeight: "bold",
+    // textAlign: "center",
+    fontSize: 16,
     margin: 10,
   },
   buttonPressed: {
@@ -123,11 +129,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
     margin: 8,
     textAlign: "center",
-  },
-  label: {
-    fontWeight: "bold",
-    fontSize: 20,
-    margin: 8,
-    color: GlobalStyles.colors.primary800,
   },
 });

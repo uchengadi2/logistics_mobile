@@ -1,31 +1,51 @@
 import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Text, FlatList } from "react-native";
 
 import { CATEGORIES } from "./../data/dummy-data";
 import CategoryGridTile from "../components/CategoryGridTile";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import data from "./../apis/local";
+import { useRoute } from "@react-navigation/native";
+import { authActions } from "../store/redux/auth";
 
-// const categoriesList = (
-//   <React.Fragment>
-//     <Grid container direction="row">
-//       {categories.map((category, index) => (
-//         <ProductCard
-//           title={category.title}
-//           key={`${category.title}${index}`}
-//           description={category.description}
-//           image={category.image}
-//           token={props.token}
-//           userId={props.userId}
-//         />
-//       ))}
-//     </Grid>
-//   </React.Fragment>
-// );
-
-function CategoriesScreen({ navigation, token, userId }) {
+function CategoriesScreen({ navigation }) {
   const [categoryList, setCategoryList] = useState([]);
+  const [token, setToken] = useState();
+  const [userId, setUserId] = useState();
 
-  
+  // AsyncStorage.removeItem("token");
+  // AsyncStorage.removeItem("userId");
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const storedToken = async () => {
+      const token = await AsyncStorage.getItem("token");
+      setToken(token);
+    };
+    storedToken().catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    const storedUserId = async () => {
+      const userId = await AsyncStorage.getItem("userId");
+      setUserId(userId);
+    };
+    storedUserId().catch(console.error);
+  }, []);
+
+  const authData = {
+    token: token,
+    userId: userId,
+  };
+
+  useEffect(() => {
+    if (authData.token && authData.userId) {
+      dispatch(authActions.login(authData));
+    }
+  }, [authData]);
+
   useEffect(() => {
     const fetchData = async () => {
       let allData = [];
@@ -48,7 +68,8 @@ function CategoriesScreen({ navigation, token, userId }) {
     fetchData().catch(console.error);
   }, []);
 
-  //console.log("this is the category list:", categoryList);
+  // console.log("this is the token:", token);
+  // console.log("this is the user:", userId);
 
   function renderCategoryItem(itemData) {
     function pressHandler() {
